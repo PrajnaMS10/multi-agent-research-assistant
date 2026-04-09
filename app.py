@@ -374,10 +374,10 @@ if run_btn and query.strip():
     # Download
     st.markdown("<br>", unsafe_allow_html=True)
     st.download_button(
-        label="⬇ Download Full Review (.md)",
-        data=review_md,
-        file_name=f"literature_review_{'_'.join(query.split()[:4])}.md",
-        mime="text/markdown",
+      label="⬇ Download Full Review (.md)",
+      data=review_md,
+      file_name=f"literature_review_{'_'.join(query.split()[:4])}.md",
+      mime="text/markdown",
     )
 
 elif run_btn and not query.strip():

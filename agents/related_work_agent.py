@@ -1,6 +1,9 @@
-import anthropic
 import json
-
+# from openai import OpenAI
+import google.generativeai as genai
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
 def generate_related_work(query: str, papers: list[dict]) -> dict:
     """
@@ -8,7 +11,9 @@ def generate_related_work(query: str, papers: list[dict]) -> dict:
     Synthesizes summaries of retrieved papers into a structured literature review
     with thematic groupings, research gaps, and future directions.
     """
-    client = OpenAI()
+    # client = OpenAI()
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel("gemini-3.1-flash-lite-preview")
 
     # Build a structured representation of the papers for the prompt
     papers_text = ""
@@ -51,13 +56,15 @@ Write a comprehensive Related Work section in the following JSON format (respond
   "literature_review_paragraph": "A single cohesive academic paragraph (200-300 words) suitable for inclusion in a paper, written in third person, past tense, with in-text citations like [1], [2], etc. referencing the paper numbers above."
 }}"""
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        max_tokens=2048,
-        messages=[{"role": "user", "content": prompt}]
-    )
+    # response = client.chat.completions.create(
+    #     model="gpt-4o",
+    #     max_tokens=2048,
+    #     messages=[{"role": "user", "content": prompt}]
+    # )
 
-    raw = response.choices[0].message.content.strip()
+    # raw = response.choices[0].message.content.strip()
+    response = model.generate_content(prompt)
+    raw = (response.text or "").strip()
 
     try:
         if raw.startswith("```"):
