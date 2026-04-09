@@ -1,8 +1,14 @@
-from openai import OpenAI
+# # from openai import OpenAI
+# from google import genai
+import google.generativeai as genai
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 def summarize_paper(abstract: str, title: str = "") -> dict:
-    client = OpenAI()  # reads OPENAI_API_KEY from env automatically
-
+    # client = OpenAI() 
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    model = genai.GenerativeModel("gemini-2.5-flash-lite")
     title_context = f'Title: "{title}"\n\n' if title else ""
 
     prompt = f"""You are a research paper summarization expert.
@@ -19,13 +25,14 @@ Provide a structured summary in the following JSON format (respond with ONLY val
   "limitations": "..."
 }}"""
 
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}]
-    )
-
-    raw = response.choices[0].message.content.strip()
+    # response = client.chat.completions.create(
+    #     model="gpt-4o",
+    #     max_tokens=1024,
+    #     messages=[{"role": "user", "content": prompt}]
+    # )
+    response = model.generate_content(prompt)
+    # raw = response.text.strip()
+    raw = (response.text or "").strip()
 
     # Parse JSON response
     import json
