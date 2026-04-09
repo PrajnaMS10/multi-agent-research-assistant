@@ -1,47 +1,61 @@
-from transformers import pipeline
-import re
+from openai import OpenAI
 
-summarizer = pipeline(
-    "text2text-generation",
-    model="google/flan-t5-base"
-)
+def summarize_paper(abstract: str, title: str = "") -> dict:
+    client = OpenAI()  # reads OPENAI_API_KEY from env automatically
 
-def clean_text(text):
-    # remove copyright and repeated boilerplate
-    text = re.sub(r"All rights reserved.*", "", text, flags=re.IGNORECASE)
-    text = re.sub(r"\s+", " ", text)  # remove extra spaces
-    return text.strip()
+    title_context = f'Title: "{title}"\n\n' if title else ""
 
-def summarize_paper(abstract):
+    prompt = f"""You are a research paper summarization expert.
+{title_context}Abstract:
+{abstract}
 
-    prompt = f"""
-    Read the following research paper abstract and generate a detailed structured summary.
+Provide a structured summary in the following JSON format (respond with ONLY valid JSON, no markdown):
+{{
+  "one_liner": "...",
+  "problem": "...",
+  "methodology": "...",
+  "key_findings": ["...", "..."],
+  "novelty": "...",
+  "limitations": "..."
+}}"""
 
-    Include the following sections:
-
-    Research Problem:
-    Explain what problem the paper addresses.
-
-    Methodology:
-    Describe the approach or model used.
-
-    Key Contributions:
-    List the main innovations or contributions.
-
-    Results and Findings:
-    Explain the outcomes or improvements reported.
-
-    Write at least 6–8 sentences.
-
-    Abstract:
-    {abstract}
-    """
-
-    result = summarizer(
-        prompt,
-        max_length=400,
-        min_length=150,
-        truncation=True
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": prompt}]
     )
 
-    return result[0]["generated_text"]
+    raw = response.choices[0].message.content.strip()
+
+    # Parse JSON response
+    import json
+    try:
+        # Strip markdown fences if present
+        if raw.startswith("```"):
+            raw = raw.split("```")[1]
+            if raw.startswith("json"):
+                raw = raw[4:]
+        summary = json.loads(raw.strip())
+    except json.JSONDecodeError:
+        # Fallback: return raw text in a structured dict
+        summary = {
+            "one_liner": raw[:200],
+            "problem": "See raw summary",
+            "methodology": raw,
+            "key_findings": [],
+            "novelty": "",
+            "limitations": "",
+        }
+
+    return summary
+
+
+def summarize_papers(papers: list[dict]) -> list[dict]:
+    """
+    Summarize a list of papers and return them enriched with summaries.
+    """
+    enriched = []
+    for paper in papers:
+        summary = summarize_paper(paper["abstract"], paper.get("title", ""))
+        enriched.append({**paper, "summary": summary})
+    return enriched

@@ -207,7 +207,7 @@ st.markdown("""
 # ── Sidebar ────────────────────────────────────────────────────
 with st.sidebar:
     st.markdown("### ⚙️ Pipeline Settings")
-    max_papers = st.slider("Papers to retrieve", min_value=2, max_value=10, value=5)
+    max_papers = st.slider("Papers to retrieve", min_value=2, max_value=10, value=2)
     st.markdown("---")
     st.markdown("### 🤖 Agents")
     st.markdown("""
