@@ -32,6 +32,8 @@ Create a `.env` file in the project root (it should be ignored by git) and set:
 
 ```env
 GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+GROQ_API_KEY="YOUR_GROQ_API_KEY"
+OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
 ### 4) Run the app
