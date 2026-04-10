@@ -36,13 +36,13 @@ GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
 
 ### 4) Run the app
 
-Run Streamlit with the main entrypoint:
+Run with the main entrypoint:
 
 ```powershell
-streamlit run main.py
+python main.py
 ```
 
-If you prefer the alternate entrypoint:
+To run streamlit
 
 ```powershell
 streamlit run app.py
