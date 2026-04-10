@@ -34,6 +34,8 @@ Create a `.env` file in the project root (it should be ignored by git):
 ```env
 GROQ_API_KEY="YOUR_GROQ_API_KEY"
 GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
+GROQ_API_KEY="YOUR_GROQ_API_KEY"
+OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
 Summaries use **Groq**; the related-work / literature-review synthesis uses **Google Gemini** (see `agents/summarization_agent.py` and `agents/related_work_agent.py`).
