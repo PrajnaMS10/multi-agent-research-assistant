@@ -29,16 +29,30 @@ pip install -r requirements.txt
 
 ### 3) Configure environment variables
 
-Create a `.env` file in the project root (it should be ignored by git):
+Put **`GROQ_API_KEY`** in a `.env` file. The server loads, in order:
+
+1. `multi-agent-research-assistant/.env`
+2. Parent folder `.env` (e.g. `Gen-AI Project/.env` if you keep secrets next to the repo)
 
 ```env
 GROQ_API_KEY="YOUR_GROQ_API_KEY"
-GEMINI_API_KEY="YOUR_GEMINI_API_KEY"
-GROQ_API_KEY="YOUR_GROQ_API_KEY"
-OPENAI_API_KEY="YOUR_OPENAI_API_KEY"
 ```
 
-Summaries use **Groq**; the related-work / literature-review synthesis uses **Google Gemini** (see `agents/summarization_agent.py` and `agents/related_work_agent.py`).
+**Models (Groq Cloud):**
+
+| Agent | Role            | Default model                 |
+|-------|-----------------|-------------------------------|
+| B     | Summarization   | `llama-3.3-70b-versatile`     |
+| C     | Related work    | `qwen/qwen3-32b`              |
+
+Optional overrides:
+
+```env
+GROQ_MODEL_SUMMARIZATION="llama-3.3-70b-versatile"
+GROQ_MODEL_RELATED_WORK="qwen/qwen3-32b"
+```
+
+See [Groq models](https://console.groq.com/docs/models) for current IDs (e.g. `llama-3.1-8b-instant` for faster, cheaper summaries).
 
 ### 4) Run the API server
 

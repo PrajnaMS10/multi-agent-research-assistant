@@ -35,6 +35,28 @@ function PaperMeta({ paper }) {
           </a>
         </>
       ) : null}
+      {paper.citations !== undefined && (
+        <>
+          <span className="paper-meta-sep" aria-hidden>
+            ·
+          </span>
+          <span className="citation-count">
+            <svg
+              className="citation-icon"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ width: "12px", height: "12px", marginRight: "4px" }}
+            >
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+            {paper.citations} {paper.citations === 1 ? "citation" : "citations"}
+          </span>
+        </>
+      )}
     </div>
   );
 }
@@ -73,6 +95,7 @@ export default function App() {
   const [warn, setWarn] = useState("");
   const [err, setErr] = useState("");
   const [result, setResult] = useState(null);
+  const [activeTab, setActiveTab] = useState("a");
   const resultsRef = useRef(null);
 
   useEffect(() => {
@@ -104,6 +127,7 @@ export default function App() {
       return;
     }
     setLoading(true);
+    setActiveTab("a");
     try {
       const res = await fetch("/api/pipeline", {
         method: "POST",
@@ -265,7 +289,7 @@ export default function App() {
         </div>
 
         <p className="footer-note">
-          Summaries via Groq · Synthesis via Gemini · Data from ArXiv
+          Summaries (Llama) · Synthesis (Qwen) via Groq · Data from ArXiv
         </p>
       </aside>
 
@@ -308,7 +332,7 @@ export default function App() {
                   onClick={runPipeline}
                   disabled={loading}
                 >
-                  {loading ? "Running…" : "Run pipeline"}
+                  {loading ? "Running…" : "Run"}
                 </button>
               </div>
               <p className="search-hint">
@@ -387,82 +411,114 @@ export default function App() {
 
             {result && (
               <div ref={resultsRef} className="results" tabIndex={-1}>
-                <StepHeader
-                  badge="Agent A"
-                  badgeClass="badge-a"
-                  title="Paper retrieval"
-                  step="01 / 03"
-                />
-                <div className="alert alert--ok" role="status">
-                  Found <strong>{result.papers?.length ?? 0}</strong> papers on
-                  ArXiv
-                </div>
-                <div className="card-stack">
-                  {(result.papers || []).map((p, idx) => (
-                    <article key={idx} className="paper-card">
-                      <span className="paper-index">{idx + 1}</span>
-                      <h3 className="paper-title">{p.title}</h3>
-                      <PaperMeta paper={p} />
-                      <p className="abstract-snippet">
-                        {(p.abstract || "").slice(0, 220)}
-                        {(p.abstract || "").length > 220 ? "…" : ""}
-                      </p>
-                    </article>
-                  ))}
+                <div className="tabs-nav">
+                  <button
+                    className={`tab-btn ${activeTab === "a" ? "active" : ""}`}
+                    onClick={() => setActiveTab("a")}
+                  >
+                    <span className="tab-badge badge-a">A</span>
+                    Retrieval
+                  </button>
+                  <button
+                    className={`tab-btn ${activeTab === "b" ? "active" : ""}`}
+                    onClick={() => setActiveTab("b")}
+                  >
+                    <span className="tab-badge badge-b">B</span>
+                    Summaries
+                  </button>
+                  <button
+                    className={`tab-btn ${activeTab === "c" ? "active" : ""}`}
+                    onClick={() => setActiveTab("c")}
+                  >
+                    <span className="tab-badge badge-c">C</span>
+                    Synthesis
+                  </button>
                 </div>
 
-                <StepHeader
-                  badge="Agent B"
-                  badgeClass="badge-b"
-                  title="Summarization"
-                  step="02 / 03"
-                />
-                <div className="card-stack">
-                  {(result.enriched_papers || []).map((paper, idx) => {
-                    const s = paper.summary || {};
-                    const findings = (s.key_findings || []).slice(0, 4);
-                    return (
-                      <article key={idx} className="paper-card paper-card--summary">
-                        <span className="paper-index paper-index--b">
-                          {idx + 1}
-                        </span>
-                        <h3 className="paper-title">{paper.title}</h3>
-                        {s.one_liner && (
-                          <blockquote className="one-liner">{s.one_liner}</blockquote>
-                        )}
-                        <div className="findings-label">Key findings</div>
-                        <div className="chips">
-                          {findings.length === 0 ? (
-                            <span className="finding-chip finding-chip--muted">
-                              No bullets returned
+                {activeTab === "a" && (
+                  <div className="tab-content">
+                    <StepHeader
+                      badge="Agent A"
+                      badgeClass="badge-a"
+                      title="Paper retrieval"
+                      step="01 / 03"
+                    />
+                    <div className="alert alert--ok" role="status">
+                      Found <strong>{result.papers?.length ?? 0}</strong> papers on
+                      ArXiv
+                    </div>
+                    <div className="card-stack">
+                      {(result.papers || []).map((p, idx) => (
+                        <article key={idx} className="paper-card">
+                          <span className="paper-index">{idx + 1}</span>
+                          <h3 className="paper-title">{p.title}</h3>
+                          <PaperMeta paper={p} />
+                          <p className="abstract-snippet">
+                            {(p.abstract || "").slice(0, 220)}
+                            {(p.abstract || "").length > 220 ? "…" : ""}
+                          </p>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "b" && (
+                  <div className="tab-content">
+                    <StepHeader
+                      badge="Agent B"
+                      badgeClass="badge-b"
+                      title="Summarization"
+                      step="02 / 03"
+                    />
+                    <div className="card-stack">
+                      {(result.enriched_papers || []).map((paper, idx) => {
+                        const s = paper.summary || {};
+                        const findings = (s.key_findings || []).slice(0, 4);
+                        return (
+                          <article key={idx} className="paper-card paper-card--summary">
+                            <span className="paper-index paper-index--b">
+                              {idx + 1}
                             </span>
-                          ) : (
-                            findings.map((f, i) => (
-                              <span key={i} className="finding-chip">
-                                {f}
-                              </span>
-                            ))
-                          )}
-                        </div>
-                        {s.novelty && (
-                          <div className="novelty">
-                            <span className="novelty-label">Novelty</span>
-                            {s.novelty}
-                          </div>
-                        )}
-                      </article>
-                    );
-                  })}
-                </div>
+                            <h3 className="paper-title">{paper.title}</h3>
+                            {s.one_liner && (
+                              <blockquote className="one-liner">{s.one_liner}</blockquote>
+                            )}
+                            <div className="findings-label">Key findings</div>
+                            <div className="chips">
+                              {findings.length === 0 ? (
+                                <span className="finding-chip finding-chip--muted">
+                                  No bullets returned
+                                </span>
+                              ) : (
+                                findings.map((f, i) => (
+                                  <span key={i} className="finding-chip">
+                                    {f}
+                                  </span>
+                                ))
+                              )}
+                            </div>
+                            {s.novelty && (
+                              <div className="novelty">
+                                <span className="novelty-label">Novelty</span>
+                                {s.novelty}
+                              </div>
+                            )}
+                          </article>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-                <StepHeader
-                  badge="Agent C"
-                  badgeClass="badge-c"
-                  title="Related work & synthesis"
-                  step="03 / 03"
-                />
-                {result.related_work && (
-                  <>
+                {activeTab === "c" && result.related_work && (
+                  <div className="tab-content">
+                    <StepHeader
+                      badge="Agent C"
+                      badgeClass="badge-c"
+                      title="Related work & synthesis"
+                      step="03 / 03"
+                    />
                     <div className="review-box">
                       <div className="overline">Overview</div>
                       <div className="review-body">{result.related_work.overview}</div>
@@ -536,7 +592,7 @@ export default function App() {
                         Download full review (.md)
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             )}

@@ -1,6 +1,15 @@
 """
 FastAPI backend for the Research Assistant (used by the React frontend).
 """
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+# Load .env from app folder and parent workspace (common OneDrive layout)
+_base = Path(__file__).resolve().parent
+load_dotenv(_base / ".env")
+load_dotenv(_base.parent / ".env")
+
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, field_validator
@@ -48,22 +57,34 @@ def run_pipeline(body: PipelineRequest):
     if not query:
         raise HTTPException(status_code=400, detail="Query cannot be empty")
 
-    papers = retrieve_papers(query, max_results=body.max_papers)
-    if not papers:
-        raise HTTPException(status_code=404, detail="No papers found. Try a different query.")
+    try:
+        papers = retrieve_papers(query, max_results=body.max_papers)
+        if not papers:
+            raise HTTPException(
+                status_code=404, detail="No papers found. Try a different query."
+            )
 
-    enriched_papers = []
-    for paper in papers:
-        summary = summarize_paper(paper["abstract"], paper["title"])
-        enriched_papers.append({**paper, "summary": summary})
+        enriched_papers = []
+        for paper in papers:
+            summary = summarize_paper(paper["abstract"], paper["title"])
+            enriched_papers.append({**paper, "summary": summary})
 
-    related_work = generate_related_work(query, enriched_papers)
-    review_md = format_literature_review(query, enriched_papers, related_work)
+        related_work = generate_related_work(query, enriched_papers)
+        review_md = format_literature_review(query, enriched_papers, related_work)
 
-    return {
-        "query": query,
-        "papers": papers,
-        "enriched_papers": enriched_papers,
-        "related_work": related_work,
-        "review_md": review_md,
-    }
+        return {
+            "query": query,
+            "papers": papers,
+            "enriched_papers": enriched_papers,
+            "related_work": related_work,
+            "review_md": review_md,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        # Surface provider / config errors instead of a bare 500
+        msg = str(e).strip() or repr(e)
+        raise HTTPException(
+            status_code=502,
+            detail=f"Pipeline failed: {msg}",
+        ) from e
