@@ -62,7 +62,18 @@ JSON Format:
   "debates": "Any contradictions, competing approaches, or open debates across papers?",
   "gaps": ["research gap 1", "research gap 2", "research gap 3"],
   "future_directions": ["direction 1", "direction 2", "direction 3"],
-  "literature_review_paragraph": "A single cohesive academic paragraph (200-300 words) suitable for inclusion in a paper, written in third person, past tense, with in-text citations like [1], [2], etc. referencing the paper numbers above."
+  "literature_review_paragraph": "A single cohesive academic paragraph (200-300 words) suitable for inclusion in a paper, written in third person, past tense, with in-text citations like [1], [2], etc. referencing the paper numbers above.",
+  "papers_table": [
+    {{
+      "name": "Full paper title",
+      "year": "2024",
+      "authors": "Author A, Author B",
+      "objective": "What the paper aims to achieve",
+      "methodology": "Approach and methods used",
+      "key_results": "Main findings and results",
+      "limitations": "Drawbacks or gaps acknowledged"
+    }}
+  ]
 }}"""
 
     api_key = os.getenv("GROQ_API_KEY")
@@ -75,7 +86,7 @@ JSON Format:
     completion = client.chat.completions.create(
         model=RELATED_WORK_MODEL,
         messages=[{"role": "user", "content": prompt}],
-        temperature=0.1,  # Lower temperature for more consistent JSON
+        temperature=0.1,
         max_tokens=4096,
         top_p=1,
         stream=False,
@@ -86,18 +97,14 @@ JSON Format:
 
     # Post-process to remove potential reasoning blocks or thought tags
     import re
-    # Remove <thought>...</thought> tags and content
     raw = re.sub(r'<thought>.*?</thought>', '', raw, flags=re.DOTALL).strip()
-    # Remove thinking: ... sections if they appear
     raw = re.sub(r'^thinking:.*?\n', '', raw, flags=re.IGNORECASE | re.MULTILINE).strip()
 
     try:
-        # Try to find the first '{' and last '}' to extract the JSON object
         start_idx = raw.find('{')
         end_idx = raw.rfind('}')
         if start_idx != -1 and end_idx != -1:
             raw = raw[start_idx:end_idx + 1]
-        
         result = json.loads(raw)
     except (json.JSONDecodeError, ValueError):
         result = {
@@ -109,6 +116,7 @@ JSON Format:
             "gaps": [],
             "future_directions": [],
             "literature_review_paragraph": raw if raw else "Error parsing response.",
+            "papers_table": [],
         }
 
     return result
@@ -174,7 +182,20 @@ def format_literature_review(query: str, papers: list[dict], related_work: dict)
             lines.append(f"- {direction}")
         lines.append("")
 
-    lines.append("\n## Literature Review Paragraph\n")
+    # ── Related Work Table ──────────────────────────────────────
+    if related_work.get("papers_table"):
+        lines.append("\n## Related Work Table\n")
+        lines.append("| Paper Info | Objective | Methodology | Key Results | Limitations |")
+        lines.append("|------------|-----------|-------------|-------------|-------------|")
+        for row in related_work["papers_table"]:
+            info = f"**{row.get('name', '')}** ({row.get('year', '')}) — {row.get('authors', '')}"
+            lines.append(
+                f"| {info} | {row.get('objective', '')} | {row.get('methodology', '')} | {row.get('key_results', '')} | {row.get('limitations', '')} |"
+            )
+        lines.append("")
+
+    # ── Related Work Section (renamed from Literature Review Paragraph) ──
+    lines.append("\n## Related Work Section\n")
     lines.append(related_work.get("literature_review_paragraph", "") + "\n")
 
     lines.append("\n---\n## References\n")

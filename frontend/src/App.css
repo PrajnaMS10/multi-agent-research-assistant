@@ -1193,3 +1193,152 @@
 .citation-icon {
   opacity: 0.7;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   ADD THESE STYLES TO YOUR EXISTING App.css
+   ───────────────────────────────────────────────────────────── */
+
+/* ── Section title row (title + copy button side by side) ──── */
+.section-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 28px 0 10px;
+}
+
+.section-title-row .section-title {
+  margin: 0;
+}
+
+/* ── Copy button ─────────────────────────────────────────────── */
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 6px;
+  border: 1px solid var(--border, #2d2d44);
+  background: var(--surface-2, #1a1a2e);
+  color: var(--text-muted, #8a8ab0);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.copy-btn:hover {
+  background: var(--surface-3, #22223a);
+  color: var(--text, #e8e4d9);
+  border-color: var(--border-hover, #4a4a70);
+}
+
+[data-theme="light"] .copy-btn {
+  background: #f0f0f5;
+  border-color: #d0d0df;
+  color: #555;
+}
+
+[data-theme="light"] .copy-btn:hover {
+  background: #e4e4ef;
+  color: #111;
+}
+
+/* ── Related Work Table ──────────────────────────────────────── */
+.table-section {
+  margin: 8px 0 28px;
+}
+
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--border, #252830);
+}
+
+.rw-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  min-width: 700px;
+}
+
+.rw-table thead tr {
+  background: var(--surface-2, #161820);
+}
+
+.rw-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-muted, #7a7890);
+  border-bottom: 1px solid var(--border, #252830);
+  white-space: nowrap;
+}
+
+.rw-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border, #1e2028);
+  vertical-align: top;
+  color: var(--text-body, #c8c4ba);
+  line-height: 1.5;
+}
+
+.rw-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rw-table tbody tr:hover td {
+  background: var(--surface-2, #161820);
+}
+
+.rw-table-paper-info {
+  min-width: 180px;
+}
+
+.rw-table-paper-name {
+  display: block;
+  font-weight: 600;
+  color: var(--text, #e8e4d9);
+  margin-bottom: 3px;
+  line-height: 1.4;
+}
+
+.rw-table-paper-meta {
+  display: block;
+  font-size: 0.74rem;
+  color: var(--text-muted, #6a6880);
+  font-family: "JetBrains Mono", monospace;
+}
+
+[data-theme="light"] .rw-table thead tr {
+  background: #f0f0f6;
+}
+
+[data-theme="light"] .rw-table th {
+  color: #555;
+  border-bottom-color: #ddd;
+}
+
+[data-theme="light"] .rw-table td {
+  border-bottom-color: #eee;
+  color: #333;
+}
+
+[data-theme="light"] .rw-table tbody tr:hover td {
+  background: #f7f7fb;
+}
+
+[data-theme="light"] .rw-table-paper-name {
+  color: #111;
+}
+
+[data-theme="light"] .rw-table-paper-meta {
+  color: #888;
+}
