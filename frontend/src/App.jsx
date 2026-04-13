@@ -237,92 +237,164 @@ export default function App() {
     }
   }, [result]);
 
+
+
   const runPipeline = useCallback(async () => {
-    setWarn(""); setErr(""); setResult(null);
-    const q = query.trim();
-    if (!q) { setWarn("Enter a topic above, then run the pipeline."); return; }
-    setLoading(true);
-    setActiveTab("a");
-    try {
-      console.group(`🔬 Pipeline run: "${q}"`);
-      console.log("Request →", { query: q, max_papers: maxPapers });
+  setWarn("");
+  setErr("");
+  setResult(null);
 
+  const q = query.trim();
+  if (!q) {
+    setWarn("Enter a topic above, then run the pipeline.");
+    return;
+  }
 
-      // const API_BASE = import.meta.env.VITE_API_URL;
-      // fetch(`${API_BASE}/api/pipeline`, {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json"
-      //   },
-      //   body: JSON.stringify({
-      //     query: "AI",
-      //     max_papers: 3
-      //   })
-      // })
-      // .then(res => res.json())
-      // .then(data => console.log(data))
-      // .catch(err => console.error(err));
-      const handleSubmit = async () => {
-      const API_BASE = import.meta.env.VITE_API_URL;
+  setLoading(true);
+  setActiveTab("a");
 
-      try {
-        const res = await fetch(`${API_BASE}/api/pipeline`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            query: "AI",
-            max_papers: 3
-          })
-        });
+  try {
+    console.group(`🔬 Pipeline run: "${q}"`);
+    console.log("Request →", { query: q, max_papers: maxPapers });
 
-        const data = await res.json();
+    const API_BASE = import.meta.env.VITE_API_URL;
 
-        console.log(data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    
-      const data = await res.json().catch(() => ({}));
+    // ✅ MAIN FIX: define res properly here
+    const res = await fetch(`${API_BASE}/api/pipeline`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: q,
+        max_papers: maxPapers
+      })
+    });
 
-      console.log("Response status:", res.status, res.statusText);
-      console.log("Full API response:", data);
+    // ✅ safely parse JSON
+    const data = await res.json().catch(() => ({}));
 
-      if (!res.ok) {
-        const msg = data.detail || res.statusText || "Request failed";
-        console.error("Pipeline error:", msg);
-        console.groupEnd();
-        setErr(typeof msg === "string" ? msg : JSON.stringify(msg));
-        return;
-      }
+    console.log("Response status:", res.status, res.statusText);
+    console.log("Full API response:", data);
 
-      // Log each paper and its citation count
-      if (data.papers?.length) {
-        console.group(`📄 Papers retrieved (${data.papers.length})`);
-        data.papers.forEach((p, i) => {
-          const citationStatus = p.citations > 0
-            ? `✅ ${p.citations} citations`
-            : "⚠️  0 citations (Semantic Scholar may not have indexed this paper yet)";
-          console.log(`[${i + 1}] ${p.title}`);
-          console.log(`     arxiv_id : ${p.arxiv_id}`);
-          console.log(`     published: ${p.published}`);
-          console.log(`     citations: ${citationStatus}`);
-        });
-        console.groupEnd();
-      }
-
+    if (!res.ok) {
+      const msg = data.detail || res.statusText || "Request failed";
+      console.error("Pipeline error:", msg);
       console.groupEnd();
-      setResult(data);
-    } catch (e) {
-      console.error("Pipeline fetch error:", e);
-      console.groupEnd();
-      setErr(e.message || "Could not reach the API. Start the backend with `python main.py` (port 8000).");
-    } finally {
-      setLoading(false);
+      setErr(typeof msg === "string" ? msg : JSON.stringify(msg));
+      return;
     }
-  }, [query, maxPapers]);
+
+    // ✅ success
+    setResult(data);
+
+    // logs
+    if (data.papers?.length) {
+      console.group(`📄 Papers retrieved (${data.papers.length})`);
+      data.papers.forEach((p, i) => {
+        console.log(`[${i + 1}] ${p.title}`);
+      });
+      console.groupEnd();
+    }
+
+    console.groupEnd();
+
+  } catch (e) {
+    console.error("Pipeline fetch error:", e);
+    console.groupEnd();
+    setErr(e.message || "Could not reach the API.");
+  } finally {
+    setLoading(false);
+  }
+}, [query, maxPapers]);
+
+  // const runPipeline = useCallback(async () => {
+  //   setWarn(""); setErr(""); setResult(null);
+  //   const q = query.trim();
+  //   if (!q) { setWarn("Enter a topic above, then run the pipeline."); return; }
+  //   setLoading(true);
+  //   setActiveTab("a");
+  //   try {
+  //     console.group(`🔬 Pipeline run: "${q}"`);
+  //     console.log("Request →", { query: q, max_papers: maxPapers });
+
+
+  //     // const API_BASE = import.meta.env.VITE_API_URL;
+  //     // fetch(`${API_BASE}/api/pipeline`, {
+  //     //   method: "POST",
+  //     //   headers: {
+  //     //     "Content-Type": "application/json"
+  //     //   },
+  //     //   body: JSON.stringify({
+  //     //     query: "AI",
+  //     //     max_papers: 3
+  //     //   })
+  //     // })
+  //     // .then(res => res.json())
+  //     // .then(data => console.log(data))
+  //     // .catch(err => console.error(err));
+  //     const handleSubmit = async () => {
+  //     const API_BASE = import.meta.env.VITE_API_URL;
+
+  //     try {
+  //       const res = await fetch(`${API_BASE}/api/pipeline`, {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json"
+  //         },
+  //         body: JSON.stringify({
+  //           query: "AI",
+  //           max_papers: 3
+  //         })
+  //       });
+
+  //       const data = await res.json();
+
+  //       console.log(data);
+  //     } catch (err) {
+  //       console.error(err);
+  //     }
+  //   };
+
+  //   const data = await res.json().catch(() => ({}));
+
+  //     console.log("Response status:", res.status, res.statusText);
+  //     console.log("Full API response:", data);
+
+  //     if (!res.ok) {
+  //       const msg = data.detail || res.statusText || "Request failed";
+  //       console.error("Pipeline error:", msg);
+  //       console.groupEnd();
+  //       setErr(typeof msg === "string" ? msg : JSON.stringify(msg));
+  //       return;
+  //     }
+
+  //     // Log each paper and its citation count
+  //     if (data.papers?.length) {
+  //       console.group(`📄 Papers retrieved (${data.papers.length})`);
+  //       data.papers.forEach((p, i) => {
+  //         const citationStatus = p.citations > 0
+  //           ? `✅ ${p.citations} citations`
+  //           : "⚠️  0 citations (Semantic Scholar may not have indexed this paper yet)";
+  //         console.log(`[${i + 1}] ${p.title}`);
+  //         console.log(`     arxiv_id : ${p.arxiv_id}`);
+  //         console.log(`     published: ${p.published}`);
+  //         console.log(`     citations: ${citationStatus}`);
+  //       });
+  //       console.groupEnd();
+  //     }
+
+  //     console.groupEnd();
+  //     setResult(data);
+  //   } catch (e) {
+  //     console.error("Pipeline fetch error:", e);
+  //     console.groupEnd();
+  //     setErr(e.message || "Could not reach the API. Start the backend with `python main.py` (port 8000).");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // }, [query, maxPapers]);
+
 
   const clearResults = useCallback(() => {
     setResult(null); setWarn(""); setErr("");
