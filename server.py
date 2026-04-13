@@ -49,9 +49,8 @@ def health():
 
 
 @app.post("/api/pipeline")
-def pipeline():
-    return {"message": "pipeline working"}
-
+def pipeline(body: PipelineRequest):
+    return run_pipeline(body)
 def run_pipeline(body: PipelineRequest):
     query = body.query.strip()
     if not query:
