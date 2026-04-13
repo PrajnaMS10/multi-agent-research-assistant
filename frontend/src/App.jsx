@@ -247,11 +247,20 @@ export default function App() {
       console.group(`🔬 Pipeline run: "${q}"`);
       console.log("Request →", { query: q, max_papers: maxPapers });
 
-      const res = await fetch("/api/pipeline", {
+      const API_BASE = import.meta.env.VITE_API_URL;
+      fetch(`${API_BASE}/api/pipeline`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, max_papers: maxPapers }),
-      });
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          query: "AI",
+          max_papers: 3
+        })
+      })
+      .then(res => res.json())
+      .then(data => console.log(data))
+      .catch(err => console.error(err));
       const data = await res.json().catch(() => ({}));
 
       console.log("Response status:", res.status, res.statusText);
